@@ -1,5 +1,4 @@
 package dev.shreyas.travel_ai_backend.controller;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
