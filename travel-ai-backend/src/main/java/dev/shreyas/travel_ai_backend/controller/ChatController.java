@@ -22,13 +22,12 @@ public class ChatController {
   }
 
   @PostMapping("/chat")
-  public String chat(@RequestBody TravelContextDto travelContext) throws Exception {
+  public TravelPlan chat(@RequestBody TravelContextDto travelContext) throws Exception {
     String response = llmService.generateTravelPlan(travelContext);
     TravelPlan travelPlan = JsonStreamingParser.extractTravelPlan(response);
-    System.out.println(JsonStreamingParser.extractTravelPlan(response));
     if(travelPlan != null) {
       travelPlan.printSummary();
     }
-    return llmService.generateTravelPlan(travelContext);
+    return travelPlan;
   }
 }
