@@ -1,12 +1,10 @@
 package dev.shreyas.travel_ai_backend.service;
-
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.stereotype.Service;
+
 
 import dev.shreyas.travel_ai_backend.dto.TravelContextDto;
 
-@Service
 public class GroqAIService implements LLMService {
 
     private final ChatModel chatModel;
