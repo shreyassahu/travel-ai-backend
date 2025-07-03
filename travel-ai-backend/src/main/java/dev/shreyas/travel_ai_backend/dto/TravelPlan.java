@@ -1,43 +1,22 @@
 package dev.shreyas.travel_ai_backend.dto;
 import java.util.List;
-import java.util.ArrayList;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class TravelPlan {
+  private String destination;
+  private Integer travelDays; // in days
+  private String travelStyle; // e.g., "adventure", "cultural", "relaxation"
   private List<DailyPlan> dailyPlans;
   private double totalCost;
   private List<String> recommendations;
-
-  // Constructor
-  public TravelPlan() {
-    this.dailyPlans = new ArrayList<>();
-    this.recommendations = new ArrayList<>();
-  }
-
-  // Getters and Setters
-  public List<DailyPlan> getDailyPlans() {
-    return dailyPlans;
-  }
-
-  public void setDailyPlans(List<DailyPlan> dailyPlans) {
-    this.dailyPlans = dailyPlans;
-  }
-
-  public double getTotalCost() {
-    return totalCost;
-  }
-
-  public void setTotalCost(double totalCost) {
-    this.totalCost = totalCost;
-  }
-
-  public List<String> getRecommendations() {
-    return recommendations;
-  }
-
-  public void setRecommendations(List<String> recommendations) {
-    this.recommendations = recommendations;
-  }
-
   // Utility method to print summary
   public void printSummary() {
     System.out.println("=== Travel Plan Summary ===");
