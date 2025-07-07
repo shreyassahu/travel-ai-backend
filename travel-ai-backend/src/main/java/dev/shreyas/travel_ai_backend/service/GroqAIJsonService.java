@@ -18,18 +18,28 @@ public class GroqAIJsonService implements LLMService {
   public String generateTravelPlan(TravelContextDto travelRequest) throws Exception {
     String systemPrompt = """
             You are a travel planner that always responds in valid JSON format.
+            Your response must be a single JSON object with no markdown formatting or additional text.
             Structure your response as:
             {
-                "dailyPlans": [ … ],
-                "totalCost": 0.0,
+                "destination": "string",
+                "travelDays": number,
+                "travelStyle": "string",
+                "dailyPlans": [
+                    {
+                        "day": number,
+                        "activities": [
+                            {
+                                "timeOfDay": "morning/afternoon/evening",
+                                "description": "string"
+                            }
+                        ],
+                        "cost": number
+                    }
+                ],
+                "totalCost": number,
                 "recommendations": ["string"]
             }
-            Ensure that the "dailyPlans" is an array of objects, each containing:
-            {
-                "day": 1,
-                "activities": ["activity1", "activity2"],
-                "cost": 0.0
-            }
+            Ensure all numbers are plain numbers without currency symbols or commas.
             """;
 
     String userPrompt = String.format(
