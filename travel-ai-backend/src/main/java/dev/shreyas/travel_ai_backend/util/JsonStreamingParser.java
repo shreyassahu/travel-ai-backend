@@ -8,13 +8,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.List;
 import java.util.ArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import dev.shreyas.travel_ai_backend.dto.Activity;
 import dev.shreyas.travel_ai_backend.dto.DailyPlan;
 import dev.shreyas.travel_ai_backend.dto.TravelPlan;
 
 public class JsonStreamingParser {
-
+  private static final Logger logger = LoggerFactory.getLogger(JsonStreamingParser.class);
   private static final ObjectMapper objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
@@ -45,8 +47,7 @@ public class JsonStreamingParser {
         return parseTravelPlan(rootNode);
       }
     } catch (Exception e) {
-      System.err.println("Error parsing JSON: " + e.getMessage());
-      e.printStackTrace();
+      logger.error("Error parsing JSON: {}", e.getMessage(), e);
       throw new IllegalArgumentException("Failed to parse JSON: " + e.getMessage(), e);
     }
   }
@@ -67,14 +68,14 @@ public class JsonStreamingParser {
     }
 
     // Case 2: JSON in markdown code blocks
-    Pattern pattern = Pattern.compile("```(?:json)?\\s*\\{([\\s\\S]*?)\\}\\s*```");
+    Pattern pattern = Pattern.compile("```(?:json)?\\s*\\{([\\s\\S]*?)}\\s*```");
     Matcher matcher = pattern.matcher(text);
     if (matcher.find()) {
       return "{" + matcher.group(1).trim() + "}";
     }
 
     // Case 3: Find any JSON-like structure
-    pattern = Pattern.compile("\\{([\\s\\S]*?)\\}");
+    pattern = Pattern.compile("\\{([\\s\\S]*?)}");
     matcher = pattern.matcher(text);
     if (matcher.find()) {
       return "{" + matcher.group(1).trim() + "}";
@@ -82,7 +83,7 @@ public class JsonStreamingParser {
 
     // Case 4: Clean up the text and try to find JSON
     String cleaned = text.replaceAll("(?s).*?\\{", "{")  // Remove everything before first {
-                        .replaceAll("\\}.*", "}")         // Remove everything after last }
+                        .replaceAll("}.*", "}")         // Remove everything after last }
                         .trim();
 
     if (cleaned.startsWith("{") && cleaned.endsWith("}")) {
@@ -104,41 +105,33 @@ public class JsonStreamingParser {
     }
 
     // Parse daily plans
-    if (rootNode.has("dailyPlans")) {
+    if (rootNode.has("dailyPlans") && rootNode.get("dailyPlans").isArray()) {
       List<DailyPlan> dailyPlans = new ArrayList<>();
-      JsonNode dailyPlansNode = rootNode.get("dailyPlans");
+      for (JsonNode dayNode : rootNode.get("dailyPlans")) {
+        DailyPlan.DailyPlanBuilder dayBuilder = DailyPlan.builder();
 
-      if (dailyPlansNode.isArray()) {
-        for (JsonNode dayNode : dailyPlansNode) {
-          DailyPlan.DailyPlanBuilder dayBuilder = DailyPlan.builder();
-
-          if (dayNode.has("day")) {
-            dayBuilder.day(dayNode.get("day").asInt());
-          }
-          if (dayNode.has("cost")) {
-            dayBuilder.cost(dayNode.get("cost").asDouble());
-          }
-
-          // Parse activities
-          if (dayNode.has("activities")) {
-            List<Activity> activities = new ArrayList<>();
-            JsonNode activitiesNode = dayNode.get("activities");
-
-            if (activitiesNode.isArray()) {
-              for (JsonNode actNode : activitiesNode) {
-                try {
-                  Activity activity = objectMapper.treeToValue(actNode, Activity.class);
-                  activities.add(activity);
-                } catch (JsonProcessingException e) {
-                  System.err.println("Error parsing activity: " + e.getMessage());
-                }
-              }
-            }
-            dayBuilder.activities(activities);
-          }
-
-          dailyPlans.add(dayBuilder.build());
+        if (dayNode.has("day")) {
+          dayBuilder.day(dayNode.get("day").asInt());
         }
+
+        if (dayNode.has("activities") && dayNode.get("activities").isArray()) {
+          List<Activity> activities = new ArrayList<>();
+          for (JsonNode actNode : dayNode.get("activities")) {
+            Activity.ActivityBuilder actBuilder = Activity.builder();
+
+            if (actNode.has("timeOfDay")) {
+              actBuilder.timeOfDay(actNode.get("timeOfDay").asText());
+            }
+            if (actNode.has("description")) {
+              actBuilder.description(actNode.get("description").asText());
+            }
+
+            activities.add(actBuilder.build());
+          }
+          dayBuilder.activities(activities);
+        }
+
+        dailyPlans.add(dayBuilder.build());
       }
       builder.dailyPlans(dailyPlans);
     }
