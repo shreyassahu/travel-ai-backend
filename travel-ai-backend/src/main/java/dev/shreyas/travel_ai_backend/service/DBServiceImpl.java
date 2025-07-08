@@ -17,10 +17,10 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
-    public void saveItinerary(AIData aiData) {
+    public AIData saveItinerary(AIData aiData) {
         // Implementation for saving AIData to the database
         if (aiData != null) {
-            aiDataRepository.save(aiData);
+            return aiDataRepository.save(aiData);
         } else {
             throw new IllegalArgumentException("AIData cannot be null");
         }

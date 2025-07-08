@@ -7,7 +7,7 @@ import dev.shreyas.travel_ai_backend.model.DailyPlan;
 
 public interface DBService {
 
-    void saveItinerary(AIData aiData);
+    AIData saveItinerary(AIData aiData);
 
 
     List<AIData> getLatestItineraries();

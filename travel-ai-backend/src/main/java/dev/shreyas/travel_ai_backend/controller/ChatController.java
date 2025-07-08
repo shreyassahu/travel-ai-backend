@@ -32,7 +32,7 @@ public class ChatController {
   }
 
   @PostMapping("/chat")
-  public TravelPlan chat(@RequestBody TravelContextDto travelContext) throws Exception {
+  public AIData chat(@RequestBody TravelContextDto travelContext) throws Exception {
     String response = llmService.generateTravelPlan(travelContext);
 
     // Log the raw response
@@ -48,7 +48,7 @@ public class ChatController {
         travelPlan.setTravelStyle(travelContext.getTravelStyle());
         travelPlan.printSummary();
 
-        dbService.saveItinerary(AIData.builder()
+        AIData aiData = dbService.saveItinerary(AIData.builder()
                 .destination(travelPlan.getDestination())
                 .travelDays(travelPlan.getTravelDays())
                 .travelStyle(travelPlan.getTravelStyle())
@@ -61,8 +61,10 @@ public class ChatController {
                                   .build();
                         })
                         .toList())
+                        .recommendations(travelPlan.getRecommendations())
+                .totalCost(travelPlan.getTotalCost())
                 .build());
-        return travelPlan;
+        return aiData;
       } else {
         throw new IllegalStateException("Failed to parse travel plan from AI response");
       }

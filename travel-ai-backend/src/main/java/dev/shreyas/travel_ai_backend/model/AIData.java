@@ -19,7 +19,9 @@ public class AIData {
   private String destination;
   private Integer travelDays;
   private String travelStyle;
-  private List<DailyPlan> dailyPlans;  // Store actual DailyPlan objects
+  private List<DailyPlan> dailyPlans;
+  private Double totalCost;
+  private List<String> recommendations;// Store actual DailyPlan objects
 
   @Builder.Default
   private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
