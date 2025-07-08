@@ -4,6 +4,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import dev.shreyas.travel_ai_backend.model.AIData;
 
@@ -22,4 +23,10 @@ public interface AIDataRepository extends MongoRepository<AIData, String> {
 
     // Find by destination and travel style
     List<AIData> findByDestinationAndTravelStyle(String destination, String travelStyle);
+
+    // Find latest 10 itineraries
+    List<AIData> findTop10ByOrderByCreatedAtDesc();
+
+    // Find itinerary by ID
+    Optional<AIData> findById(String id);
 }

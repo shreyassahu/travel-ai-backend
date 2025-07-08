@@ -10,29 +10,18 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-  @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-            // 1. authorize requests
-            .csrf(csrf -> csrf
-                    .ignoringRequestMatchers("/api/**")       // ← skip CSRF only for /api/**
-            )
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())  // Disable CSRF for API endpoints
+            .cors(Customizer.withDefaults())  // Enable CORS with default configuration
             .authorizeHttpRequests(auth -> auth
-                    // allow static resources and the OAuth2 login endpoints
-                    .requestMatchers(
-                            "/api/**"
-                    ).permitAll()
-                    // everything else requires authentication
-                    .anyRequest().authenticated()
+                .requestMatchers("/api/**").permitAll()  // Allow all API endpoints
+                .requestMatchers("/dashboard").authenticated()  // Require auth for dashboard
+                .anyRequest().authenticated()
             )
-            // 2. enable OAuth2 Login with default settings
-            .oauth2Login(Customizer.withDefaults())
-            // 3. optionally enable logout
-            .logout(logout -> logout
-                    .logoutSuccessUrl("/api/chat")
-                    .permitAll()
-            );
+            .oauth2Login(Customizer.withDefaults());
 
-    return http.build();
-  }
+        return http.build();
+    }
 }

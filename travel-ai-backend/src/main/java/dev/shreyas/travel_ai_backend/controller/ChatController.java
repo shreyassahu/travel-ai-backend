@@ -1,14 +1,20 @@
 package dev.shreyas.travel_ai_backend.controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
 import dev.shreyas.travel_ai_backend.dto.TravelContextDto;
 import dev.shreyas.travel_ai_backend.dto.TravelPlan;
 import dev.shreyas.travel_ai_backend.model.AIData;
 import dev.shreyas.travel_ai_backend.model.DailyPlan;
-import dev.shreyas.travel_ai_backend.repository.AIDataRepository;
+import dev.shreyas.travel_ai_backend.service.DBService;
 import dev.shreyas.travel_ai_backend.service.LLMService;
 import dev.shreyas.travel_ai_backend.util.JsonStreamingParser;
 
@@ -18,11 +24,11 @@ import dev.shreyas.travel_ai_backend.util.JsonStreamingParser;
 public class ChatController {
 
   private final LLMService llmService;
-  private final AIDataRepository aiDataRepository;
+  private final DBService dbService;
 
-  public ChatController(LLMService llmService, AIDataRepository aiDataRepository) {
+  public ChatController(LLMService llmService, DBService dbService) {
     this.llmService = llmService;
-    this.aiDataRepository = aiDataRepository;
+    this.dbService = dbService;
   }
 
   @PostMapping("/chat")
@@ -42,7 +48,7 @@ public class ChatController {
         travelPlan.setTravelStyle(travelContext.getTravelStyle());
         travelPlan.printSummary();
 
-        aiDataRepository.save(AIData.builder()
+        dbService.saveItinerary(AIData.builder()
                 .destination(travelPlan.getDestination())
                 .travelDays(travelPlan.getTravelDays())
                 .travelStyle(travelPlan.getTravelStyle())
@@ -64,6 +70,21 @@ public class ChatController {
       System.err.println("Error processing AI response: " + e.getMessage());
       e.printStackTrace();
       throw new IllegalStateException("Failed to process AI response: " + e.getMessage(), e);
+    }
+  }
+
+  @GetMapping("/itineraries")
+  public List<AIData> getLatestItineraries() {
+    return dbService.getLatestItineraries();
+  }
+
+  @GetMapping("/itinerary/{id}")
+  public ResponseEntity<AIData> getItineraryById(@PathVariable String id) {
+    try {
+      AIData itinerary = dbService.getItineraryById(id);
+      return ResponseEntity.ok(itinerary);
+    } catch (RuntimeException e) {
+      return ResponseEntity.notFound().build();
     }
   }
 }
