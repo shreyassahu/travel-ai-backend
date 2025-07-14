@@ -38,16 +38,8 @@ public class ChatController {
   }
 
   @PostMapping("/chat")
-  public AIData chat(@RequestBody TravelContextDto travelContext,  @AuthenticationPrincipal Authentication authentication) throws Exception {
+  public AIData chat(@RequestBody TravelContextDto travelContext) throws Exception {
 
-    String email;
-    if (authentication instanceof OAuth2AuthenticationToken oauth2) {
-      email = oauth2.getPrincipal().getAttribute("email");
-    } else if (authentication instanceof JwtAuthenticationToken bearer) {
-      email = bearer.getToken().getClaimAsString("email");
-    } else {
-      throw new AccessDeniedException("No user principal found");
-    }
     String response = llmService.generateTravelPlan(travelContext);
     // Log the raw response
     System.out.println("Raw AI Response:");
@@ -63,7 +55,7 @@ public class ChatController {
         travelPlan.printSummary();
 
         AIData aiData = dbService.saveItinerary(AIData.builder()
-                        .userId(email)
+                        .userId("12345")
                 .destination(travelPlan.getDestination())
                 .travelDays(travelPlan.getTravelDays())
                 .travelStyle(travelPlan.getTravelStyle())
