@@ -1,5 +1,11 @@
 package dev.shreyas.travel_ai_backend.controller;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,9 +38,17 @@ public class ChatController {
   }
 
   @PostMapping("/chat")
-  public AIData chat(@RequestBody TravelContextDto travelContext) throws Exception {
-    String response = llmService.generateTravelPlan(travelContext);
+  public AIData chat(@RequestBody TravelContextDto travelContext,  @AuthenticationPrincipal Authentication authentication) throws Exception {
 
+    String email;
+    if (authentication instanceof OAuth2AuthenticationToken oauth2) {
+      email = oauth2.getPrincipal().getAttribute("email");
+    } else if (authentication instanceof JwtAuthenticationToken bearer) {
+      email = bearer.getToken().getClaimAsString("email");
+    } else {
+      throw new AccessDeniedException("No user principal found");
+    }
+    String response = llmService.generateTravelPlan(travelContext);
     // Log the raw response
     System.out.println("Raw AI Response:");
     System.out.println(response);
@@ -49,6 +63,7 @@ public class ChatController {
         travelPlan.printSummary();
 
         AIData aiData = dbService.saveItinerary(AIData.builder()
+                        .userId(email)
                 .destination(travelPlan.getDestination())
                 .travelDays(travelPlan.getTravelDays())
                 .travelStyle(travelPlan.getTravelStyle())

@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 public class AIData {
   @Id
   private String id;
+  private String userId;
   private String destination;
   private Integer travelDays;
   private String travelStyle;

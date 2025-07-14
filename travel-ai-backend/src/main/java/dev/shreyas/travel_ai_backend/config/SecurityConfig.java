@@ -16,11 +16,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())  // Disable CSRF for API endpoints
             .cors(Customizer.withDefaults())  // Enable CORS with default configuration
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll()  // Allow all API endpoints
-                .requestMatchers("/dashboard").authenticated()  // Require auth for dashboard
-                .anyRequest().authenticated()
+                .requestMatchers("/api/chat/**", "/api/itineraries/**", "/api/itinerary/**", "/dashboard").authenticated()  // Require auth for dashboard
+                .anyRequest().permitAll()
             )
-            .oauth2Login(Customizer.withDefaults());
+                .oauth2Login(Customizer.withDefaults())
+                .oauth2ResourceServer(rs -> rs.jwt(Customizer.withDefaults()));
+
 
         return http.build();
     }
