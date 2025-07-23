@@ -33,6 +33,16 @@ public class DBServiceImpl implements DBService {
     }
 
     @Override
+    public List<AIData> getItinerariesByUser(String userId) {
+        // Implementation for retrieving itineraries by user ID
+        if (userId != null && !userId.isEmpty()) {
+            return aiDataRepository.findItinerariesByUserId(userId);
+        } else {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+    }
+
+    @Override
     public void deleteItinerary(String itineraryId) {
         // Implementation for deleting daily plans from the database
         if (itineraryId != null && !itineraryId.isEmpty()) {

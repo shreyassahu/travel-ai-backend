@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dev.shreyas.travel_ai_backend.dto.Activity;
-import dev.shreyas.travel_ai_backend.dto.DailyPlan;
+import dev.shreyas.travel_ai_backend.dto.DailyPlanDto;
 import dev.shreyas.travel_ai_backend.dto.TravelPlan;
 
 public class JsonStreamingParser {
@@ -106,9 +106,9 @@ public class JsonStreamingParser {
 
     // Parse daily plans
     if (rootNode.has("dailyPlans") && rootNode.get("dailyPlans").isArray()) {
-      List<DailyPlan> dailyPlans = new ArrayList<>();
+      List<DailyPlanDto> dailyPlans = new ArrayList<>();
       for (JsonNode dayNode : rootNode.get("dailyPlans")) {
-        DailyPlan.DailyPlanBuilder dayBuilder = DailyPlan.builder();
+        DailyPlanDto.DailyPlanDtoBuilder dayBuilder = DailyPlanDto.builder();
 
         if (dayNode.has("day")) {
           dayBuilder.day(dayNode.get("day").asInt());

@@ -1,11 +1,7 @@
 package dev.shreyas.travel_ai_backend.controller;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,9 +20,10 @@ import dev.shreyas.travel_ai_backend.service.DBService;
 import dev.shreyas.travel_ai_backend.service.LLMService;
 import dev.shreyas.travel_ai_backend.util.JsonStreamingParser;
 
+
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class ChatController {
 
   private final LLMService llmService;
@@ -38,13 +35,18 @@ public class ChatController {
   }
 
   @PostMapping("/chat")
-  public AIData chat(@RequestBody TravelContextDto travelContext) throws Exception {
+  public AIData chat(@RequestBody TravelContextDto travelContext, @AuthenticationPrincipal OAuth2User user) throws Exception {
+
+    if (user == null) {
+      throw new IllegalStateException("Authentication required. Please log in.");
+    }
+
+    String userId = user.getAttribute("sub");  // Get the unique user ID from OAuth provider
+    if (userId == null) {
+      userId = user.getName();  // Fallback to name if sub not available
+    }
 
     String response = llmService.generateTravelPlan(travelContext);
-    // Log the raw response
-    System.out.println("Raw AI Response:");
-    System.out.println(response);
-    System.out.println("End of Raw AI Response");
 
     try {
       TravelPlan travelPlan = JsonStreamingParser.extractTravelPlan(response);
@@ -52,10 +54,8 @@ public class ChatController {
         travelPlan.setDestination(travelContext.getDestination());
         travelPlan.setTravelDays(travelContext.getTravelDays());
         travelPlan.setTravelStyle(travelContext.getTravelStyle());
-        travelPlan.printSummary();
-
         AIData aiData = dbService.saveItinerary(AIData.builder()
-                        .userId("12345")
+                        .userId(userId)  // Use the actual user ID from OAuth
                 .destination(travelPlan.getDestination())
                 .travelDays(travelPlan.getTravelDays())
                 .travelStyle(travelPlan.getTravelStyle())
@@ -83,12 +83,24 @@ public class ChatController {
   }
 
   @GetMapping("/itineraries")
-  public List<AIData> getLatestItineraries() {
-    return dbService.getLatestItineraries();
+  public List<AIData> getLatestItineraries(@AuthenticationPrincipal OAuth2User user) {
+    if (user == null) {
+      throw new IllegalStateException("Authentication required. Please log in.");
+    }
+
+    String userId = user.getAttribute("sub");
+    if (userId == null) {
+      userId = user.getName();
+    }
+    return dbService.getItinerariesByUser(userId);
   }
 
   @GetMapping("/itinerary/{id}")
-  public ResponseEntity<AIData> getItineraryById(@PathVariable String id) {
+  public ResponseEntity<AIData> getItineraryById(@PathVariable String id, @AuthenticationPrincipal OAuth2User user) {
+    if (user == null) {
+      return ResponseEntity.status(401).build(); // Unauthorized
+    }
+
     try {
       AIData itinerary = dbService.getItineraryById(id);
       return ResponseEntity.ok(itinerary);

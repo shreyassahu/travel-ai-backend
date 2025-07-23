@@ -12,6 +12,8 @@ public interface DBService {
 
     List<AIData> getLatestItineraries();
 
+    List<AIData> getItinerariesByUser(String userId);
+
     void deleteItinerary(String itineraryId);
 
     AIData getItineraryById(String id);

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class DailyPlan {
+public class   DailyPlan {
   private int day;
   private List<Activity> activities;
   private Double cost;

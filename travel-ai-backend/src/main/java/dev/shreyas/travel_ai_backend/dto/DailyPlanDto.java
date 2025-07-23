@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DailyPlan {
+public class DailyPlanDto {
     @JsonProperty("day")
     private int day;
 
